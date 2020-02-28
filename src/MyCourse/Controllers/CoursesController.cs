@@ -4,14 +4,19 @@ namespace MyCourse.Controllers
 {
     public class CoursesController:Controller
     {
-       public IActionResult index()
+       public IActionResult Index()
        {
-           return Content("Io sono index");
+           return View();
        } 
 
        public IActionResult detail(string id) 
        {
            return Content($"io sono il dettaglio di id {id}");
        } 
+
+       public IActionResult search(string title)
+       {
+           return Content($"il titolo da cercare {title}");
+       }
     }
 }
