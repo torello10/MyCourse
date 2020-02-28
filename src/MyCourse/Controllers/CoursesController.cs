@@ -9,14 +9,10 @@ namespace MyCourse.Controllers
            return View();
        } 
 
-       public IActionResult detail(string id) 
+       public IActionResult Detail(string id) 
        {
-           return Content($"io sono il dettaglio di id {id}");
+           return View();
        } 
 
-       public IActionResult search(string title)
-       {
-           return Content($"il titolo da cercare {title}");
-       }
     }
 }
