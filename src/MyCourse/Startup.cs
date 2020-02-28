@@ -31,7 +31,7 @@ namespace MyCourse
 
             app.UseMvc(RouteBuilder => 
             {
-               RouteBuilder.MapRoute("default","{controller=Home}/{action=index}/{id?}"); 
+               RouteBuilder.MapRoute("default","{controller=Home}/{action=Index}/{id?}"); 
             });
         }
     }
