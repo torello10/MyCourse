@@ -60,7 +60,7 @@ namespace MyCourse
                 string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("Default");
                 optionsBuilder.UseSqlite(connectionString);
             });
-            services.AddTransient<IImagePersister, InsecureImagePersister>();
+            services.AddTransient<IImagePersister, MagickNetImagePersister>();
             //Options
             services.Configure<CoursesOptions>(Configuration.GetSection("Courses"));
             services.Configure<ConnectionStringsOptions>(Configuration.GetSection("ConnectionStrings"));
@@ -74,6 +74,7 @@ namespace MyCourse
             if (env.IsEnvironment("Development"))
             {
                 app.UseDeveloperExceptionPage();
+                
 
                 //Aggiorniamo un file per notificare al BrowserSync che deve aggiornare la pagina
                 lifetime.ApplicationStarted.Register(() =>
