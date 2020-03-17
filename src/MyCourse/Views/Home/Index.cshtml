@@ -1,7 +1,24 @@
-<h1>Benvenuto su MyCourse</h1>
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Assumenda, dolor quas! Impedit labore ipsa nobis velit, eveniet minima numquam accusamus, cumque quae, magnam quam distinctio mollitia hic ipsum sunt? Exercitationem?</p>
-<p>Expedita consequatur, voluptatem nostrum hic nisi repellat suscipit laboriosam velit iure illum. Necessitatibus voluptas quae fugiat praesentium rerum animi, harum impedit qui, laboriosam, mollitia non dolor voluptate nihil aliquam doloribus?</p>
-<p>Eum dolorum odit molestiae quo facilis illo dicta numquam exercitationem, tenetur repudiandae voluptate asperiores nihil quod. Sequi tenetur vitae rem, accusamus odit nemo ex eos natus. Optio atque magnam alias.</p>
-<p>Facilis, repudiandae ratione, iste eveniet commodi id, ducimus officia totam animi voluptatum similique ad deleniti tempore distinctio? Iure laboriosam commodi reprehenderit, optio quas tempore error vero nisi numquam expedita atque.</p>
-<p>Expedita cumque excepturi minima nobis unde saepe itaque iure! Illum voluptatem accusantium doloremque ex. Incidunt, aliquid deserunt voluptatem eligendi accusamus perferendis consectetur quod commodi quia ut nisi obcaecati earum est.</p>
+@model HomeViewModel
+<div class="jumbotron">
+    <h1 class="display-4">@ViewData["Title"]</h1>
+    <p class="lead">Impara in maniera facile e divertente con i nostri corsi online!<br>
+Scegli da un vasto catalogo sempre a tua disposizione.</p>
+    <p><a asp-controller="Courses" asp-action="Index" class="btn btn-primary">Sfoglia il catalogo dei corsi <i class="fas fa-angle-right"></i></a></p>
+</div>
 
+<section>
+    <h2>Aggiunti di recente</h2>
+    @foreach (CourseViewModel course in Model.MostRecentCourses)
+    {
+        <partial name="Courses/_CourseLine" model="@course"></partial>
+    }
+</section>
+
+
+<section>
+    <h2>I migliori di sempre</h2>
+    @foreach (CourseViewModel course in Model.BestRatingCourses)
+    {
+        <partial name="Courses/_CourseLine" model="@course"></partial>
+    }
+</section>

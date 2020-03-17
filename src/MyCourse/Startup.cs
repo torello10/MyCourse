@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MyCourse.Customizations;
+using MyCourse.Customizations.ModelBinders;
 using MyCourse.Models.Options;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
@@ -25,32 +30,45 @@ namespace MyCourse
         {
             Configuration = configuration;
         }
-        
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            // services.AddTransient<ICourseService, AdoNetCourseService>();
-            services.AddTransient<ICourseService, EfCoreCourseService>();
+            services.AddResponseCaching();
+
+            services.AddMvc(options => 
+            {
+                var homeProfile = new CacheProfile();
+                //homeProfile.Duration = Configuration.GetValue<int>("ResponseCache:Home:Duration");
+                //homeProfile.Location = Configuration.GetValue<ResponseCacheLocation>("ResponseCache:Home:Location");
+                //homeProfile.VaryByQueryKeys = new string[] { "page" };
+                Configuration.Bind("ResponseCache:Home", homeProfile);
+                options.CacheProfiles.Add("Home", homeProfile);
+                options.ModelBinderProviders.Insert(0, new DecimalModelBinderProvider());
+                
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+            #if DEBUG
+            .AddRazorRuntimeCompilation()
+            #endif
+            ;
+            services.AddTransient<ICourseService, AdoNetCourseService>();
+            //services.AddTransient<ICourseService, EfCoreCourseService>();
             services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
             services.AddTransient<ICachedCourseService, MemoryCacheCourseService>();
 
-            //services.AddScoped<MyCourseDbContext>();
-            //services.AddDbContext<MyCourseDbContext>();
             services.AddDbContextPool<MyCourseDbContext>(optionsBuilder => {
-                string connectionStrings = Configuration.GetSection("ConnectionStrings").GetValue<string>("Default"); 
-                optionsBuilder.UseSqlite(connectionStrings);
+                string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("Default");
+                optionsBuilder.UseSqlite(connectionString);
             });
-
+            services.AddTransient<IImagePersister, InsecureImagePersister>();
             //Options
-            services.Configure<ConnectionStringsOptions>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<CoursesOptions>(Configuration.GetSection("Courses"));
+            services.Configure<ConnectionStringsOptions>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<MemoryCacheOptions>(Configuration.GetSection("MemoryCache"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
             //if (env.IsDevelopment())
             if (env.IsEnvironment("Development"))
@@ -63,17 +81,36 @@ namespace MyCourse
                     string filePath = Path.Combine(env.ContentRootPath, "bin/reload.txt");
                     File.WriteAllText(filePath, DateTime.Now.ToString());
                 });
-            }else{
+            }
+            else
+            {
                 app.UseExceptionHandler("/Error");
             }
-            app.UseStaticFiles();
             
+           /* app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(CultureInfo.InvariantCulture),
+                // Formatting numbers, dates, etc.
+                SupportedCultures = new[] { CultureInfo.InvariantCulture }
+            });
+ */
+            app.UseStaticFiles();
+
+            //EndpointRoutingMiddleware
+            app.UseRouting();
+
+            app.UseResponseCaching();
+            
+            //EndpointMiddleware
+            app.UseEndpoints(routeBuilder => {
+                routeBuilder.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+            });
             //app.UseMvcWithDefaultRoute();
-            app.UseMvc(routeBuilder => 
+            /* app.UseMvc(routeBuilder => 
             {
                 // Esempio di percorso conforme al template route: /courses/detail/5
                 routeBuilder.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
-            });
+            }); */
         }
     }
 }

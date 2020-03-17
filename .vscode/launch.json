@@ -17,7 +17,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/MyCourse/bin/Debug/netcoreapp2.2/MyCourse.dll",
+            "program": "${workspaceFolder}/src/MyCourse/bin/Debug/netcoreapp3.0/MyCourse.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/MyCourse",
             "stopAtEntry": false,
